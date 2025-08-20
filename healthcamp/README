@@ -1,0 +1,1 @@
+HealthCamp (eArogya submodule)\n\n- Frontend: Expo + React Native + expo-router\n- Backend: Extend existing eArogya Django + DRF\n\nRun:\n  1) Set API base: EXPO_PUBLIC_API_BASE_URL=http://127.0.0.1:8000\n  2) npm install\n  3) npm start\n
