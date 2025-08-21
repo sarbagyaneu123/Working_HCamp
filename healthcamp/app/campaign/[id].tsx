@@ -25,6 +25,8 @@ export default function CampaignDetails() {
   const router = useRouter();
   const navigation = useNavigation();
   const [campaign, setCampaign] = useState<Campaign | null>(null);
+  const [fallbackVaccines, setFallbackVaccines] = useState<Vaccine[]>([]);
+  const [fallbackMedicines, setFallbackMedicines] = useState<Medicine[]>([]);
   const campId = useMemo(() => Number(id), [id]);
   const isRegisteredView = String(mode || '').toLowerCase() === 'registered';
 
@@ -39,7 +41,25 @@ export default function CampaignDetails() {
     (async () => {
       try {
         const res = await API.get(`/api/campaigns/${campId}/`);
-        setCampaign(res.data);
+        const data: Campaign = res.data;
+        setCampaign(data);
+
+        // Fallback: if this campaign has no linked vaccines/medicines, fetch general lists
+        // This does NOT alter existing behavior when campaign provides its own relations.
+        const needsVaccines = !(data?.vaccines && data.vaccines.length > 0);
+        const needsMedicines = !(data?.medicines && data.medicines.length > 0);
+        if (needsVaccines || needsMedicines) {
+          try {
+            const [vaxRes, medRes] = await Promise.all([
+              needsVaccines ? API.get('/api/services/vaccines/') : Promise.resolve({ data: [] }),
+              needsMedicines ? API.get('/api/services/medicines/') : Promise.resolve({ data: [] }),
+            ]);
+            if (needsVaccines) setFallbackVaccines(vaxRes.data ?? []);
+            if (needsMedicines) setFallbackMedicines(medRes.data ?? []);
+          } catch {
+            // silent fallback failure – keep UI as-is
+          }
+        }
       } catch (e: any) {
         Alert.alert('Error', 'Unable to load campaign details.');
       }
@@ -63,6 +83,10 @@ export default function CampaignDetails() {
 
   if (!campaign) return null;
 
+  // Determine which lists to show: campaign-specific if present, otherwise general fallback
+  const vaccinesToShow = (campaign.vaccines && campaign.vaccines.length > 0) ? campaign.vaccines : fallbackVaccines;
+  const medicinesToShow = (campaign.medicines && campaign.medicines.length > 0) ? campaign.medicines : fallbackMedicines;
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>{campaign.title}</Text>
@@ -80,20 +104,20 @@ export default function CampaignDetails() {
         </View>
       ) : null}
 
-      {(campaign.vaccines?.length || campaign.medicines?.length) ? (
+      {(vaccinesToShow?.length || medicinesToShow?.length) ? (
         <View style={styles.section}>
-          {campaign.vaccines && campaign.vaccines.length > 0 ? (
+          {vaccinesToShow && vaccinesToShow.length > 0 ? (
             <View style={styles.group}>
-              <Text style={styles.groupTitle}>Vaccines</Text>
-              {campaign.vaccines.map(v => (
+              <Text style={styles.groupTitle}>Vaccines{(campaign.vaccines && campaign.vaccines.length > 0) ? '' : ' (general)'}</Text>
+              {vaccinesToShow.map(v => (
                 <Text key={`v-${v.id}`} style={styles.item}>• {v.name}{v.type ? ` (${v.type})` : ''}{v.age_group ? ` • ${v.age_group}` : ''}{v.timing ? ` • ${v.timing}` : ''}</Text>
               ))}
             </View>
           ) : null}
-          {campaign.medicines && campaign.medicines.length > 0 ? (
+          {medicinesToShow && medicinesToShow.length > 0 ? (
             <View style={styles.group}>
-              <Text style={styles.groupTitle}>Medicines</Text>
-              {campaign.medicines.map(m => (
+              <Text style={styles.groupTitle}>Medicines{(campaign.medicines && campaign.medicines.length > 0) ? '' : ' (general)'}</Text>
+              {medicinesToShow.map(m => (
                 <Text key={`m-${m.id}`} style={styles.item}>• {m.name}{m.type ? ` (${m.type})` : ''}{m.age_group ? ` • ${m.age_group}` : ''}{m.availability ? ` • ${m.availability}` : ''}{m.description ? ` — ${m.description}` : ''}</Text>
               ))}
             </View>
