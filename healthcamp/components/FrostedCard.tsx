@@ -19,7 +19,7 @@ export default function FrostedCard({ style, children, padding = spacing.lg, ...
   }
 
   const content = (
-    <View style={[styles.inner, { padding }, style]}>
+    <View style={[styles.inner, { padding }]}>
       {children}
     </View>
   );

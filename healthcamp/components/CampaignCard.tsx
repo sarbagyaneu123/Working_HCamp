@@ -21,7 +21,7 @@ export default function CampaignCard({ campaign, onRegister }: Props) {
   const [showServices, setShowServices] = useState(false);
   const router = useRouter();
   return (
-    <FrostedCard style={styles.cardOuter}>
+    <FrostedCard>
       <Text style={styles.title}>{campaign.title}</Text>
       {campaign.timing ? <Text style={styles.meta}>⏰ {campaign.timing}</Text> : null}
       {campaign.location ? <Text style={styles.meta}>📍 {campaign.location}</Text> : null}
@@ -81,7 +81,6 @@ export default function CampaignCard({ campaign, onRegister }: Props) {
 }
 
 const styles = StyleSheet.create({
-  cardOuter: { padding: 0 },
   title: { ...text.title, marginBottom: spacing.xs },
   meta: { ...text.muted, marginTop: spacing.xs },
   toggle: { alignSelf: 'flex-start', marginTop: spacing.xs, backgroundColor: colors.subtle, paddingHorizontal: spacing.md, paddingVertical: spacing.xs, borderRadius: radius.sm, borderWidth: 1, borderColor: colors.border },
