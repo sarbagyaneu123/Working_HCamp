@@ -52,14 +52,6 @@ export default function Layout() {
             }}
           />
           <Stack.Screen
-            name="services"
-            options={{
-              title: 'SERVICES',
-              headerTitleAlign: 'center',
-              headerTitleStyle: { fontWeight: '800' },
-            }}
-          />
-          <Stack.Screen
             name="my-registrations"
             options={{
               title: 'MY REGISTRATIONS',
